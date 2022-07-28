@@ -1,0 +1,31 @@
+#map {
+    height: 100%;
+    position: relative;
+}
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#info {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    max-width: 300px;
+    height: 100vh;
+    display: none;
+}
+#info.active {
+    display: block;
+}
+#btn-close {
+    justify-content: flex-end;
+    display: flex;
+    padding: 10px;
+    cursor: pointer;
+}
+.custom-map-control-button {
+    padding: 5px 10px;
+}
