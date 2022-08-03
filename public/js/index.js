@@ -130,6 +130,22 @@ async function initMap() {
                                 map: map,
                                 icon: icon,
                             });
+                            let rating = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                            item.reviews.forEach((review) => {
+                                if (review && review.star) {
+                                    rating[review.star]++;
+                                }
+                            });
+                            let averageRating =
+                                Math.round(
+                                    ((rating[1] +
+                                        rating[2] * 2 +
+                                        rating[3] * 3 +
+                                        rating[4] * 4 +
+                                        rating[5] * 5) /
+                                        item.reviews.length) *
+                                        10
+                                ) / 10;
 
                             // Infowindow
                             // const contentInfoWindow = `
@@ -150,12 +166,114 @@ async function initMap() {
                             const contentInfoContainer = `
                                         <div id="bodyContent">
                                             <div style="padding: 10px">
-                                                <img src="./${item.image}" alt="image" style="width:100%;object-fit: contain;"
+                                                <img src="./${
+                                                    item.image
+                                                }" alt="image" style="width:100%;object-fit: cover; height:200px"
                                                 onerror="this.onerror=null;this.src='./uploads/default.jpg';"/>
                                             </div>
-                                            <h1 id="firstHeading" class="firstHeading">${item.name}</h1>
-                                            <div style="display: flex">${item.location.formattedAddress}</div>
-                                            <div style="display: flex">${item.info}</div>
+                                            <h1 style="padding:5px 10px">${item.name}</h1>
+                                            <div style="padding:10px">${
+                                                item.location.formattedAddress
+                                            }</div>
+                                            <div style="padding:10px">${item.info}</div>
+                                            <div class="row" style="padding: 5px;
+                                                margin: 5px;
+                                                background: #ccc;
+                                                border-radius: 5px;">
+                                            <div class="col-8">
+                                                <table class="rating">
+                                                <tr>
+                                                    <td>5</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-warning" 
+                                                                role="progressbar" 
+                                                                style="width: ${
+                                                                    (rating[5] /
+                                                                        item.reviews.length) *
+                                                                    100
+                                                                }%" aria-valuenow="${rating[5]}" 
+                                                                aria-valuemin="0" aria-valuemax="${
+                                                                    item.reviews.length
+                                                                }">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>4</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                        <div class="progress-bar bg-warning" 
+                                                                role="progressbar" 
+                                                                style="width: ${
+                                                                    (rating[4] /
+                                                                        item.reviews.length) *
+                                                                    100
+                                                                }%" aria-valuenow="${rating[4]}" 
+                                                                aria-valuemin="0" aria-valuemax="${
+                                                                    item.reviews.length
+                                                                }">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <td>3</td>
+                                                    <td>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-warning" 
+                                                                role="progressbar" 
+                                                                style="width: ${
+                                                                    (rating[3] /
+                                                                        item.reviews.length) *
+                                                                    100
+                                                                }%" aria-valuenow="${rating[3]}" 
+                                                                aria-valuemin="0" aria-valuemax="${
+                                                                    item.reviews.length
+                                                                }">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                    <td>2</td>
+                                                    <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-warning" 
+                                                            role="progressbar" 
+                                                            style="width: ${
+                                                                (rating[2] / item.reviews.length) *
+                                                                100
+                                                            }%" aria-valuenow="${rating[2]}" 
+                                                            aria-valuemin="0" aria-valuemax="${
+                                                                item.reviews.length
+                                                            }">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                </tr>
+                                                    <td>1</td>
+                                                    <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-warning" 
+                                                            role="progressbar" 
+                                                            style="width: ${
+                                                                (rating[1] / item.reviews.length) *
+                                                                100
+                                                            }%" aria-valuenow="${rating[1]}" 
+                                                            aria-valuemin="0" aria-valuemax="${
+                                                                item.reviews.length
+                                                            }">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                </tr>
+                                                </table>
+                                            </div>
+                                            <div class="col-4 justify-content-center align-items-center d-flex flex-column">
+                                                <h2>${averageRating}</h2>
+                                                <p>${item.reviews.length} reviews</p>
+                                            </div>
+                                            </div>
                                         </div>
                                 `;
                             marker.addListener("click", () => {

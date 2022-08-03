@@ -34,7 +34,7 @@ const authCtrl = {
             });
             res.json({ success: true, access_token, data: { ...newUser._doc, password: "" } });
         } catch (error) {
-            return res.status(500).json({ msg: error.message });
+            res.status(500).json({ error: "Server error: " + error.message });
         }
     },
     //@desc Login
@@ -61,7 +61,7 @@ const authCtrl = {
             });
             res.json({ success: true, access_token, data: { ...user._doc, password: "" } });
         } catch (error) {
-            return res.status(500).json({ msg: error.message });
+            res.status(500).json({ error: "Server error: " + error.message });
         }
     },
     //@desc Logout
@@ -72,7 +72,7 @@ const authCtrl = {
             res.clearCookie("refreshtoken", { path: "/api/refresh_token" });
             res.json({ success: true });
         } catch (error) {
-            return res.status(500).json({ msg: error.message });
+            res.status(500).json({ error: "Server error: " + error.message });
         }
     },
     //@desc Generate Access Token
@@ -90,7 +90,7 @@ const authCtrl = {
                 res.json({ success: true, access_token, data: user });
             });
         } catch (error) {
-            return res.status(500).json({ msg: error.message });
+            res.status(500).json({ error: "Server error: " + error.message });
         }
     },
 };
