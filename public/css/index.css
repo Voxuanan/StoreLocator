@@ -27,15 +27,15 @@ body {
 #info.active {
     display: block;
 }
-#info::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #f5f5f5;
 }
-#info::-webkit-scrollbar {
+*::-webkit-scrollbar {
     width: 12px;
     background-color: #f5f5f5;
 }
-#info::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
     border-radius: 10px;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #ccc;
@@ -60,4 +60,42 @@ table.rating {
 
 .rating td:nth-child(even) {
     width: 90%;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/****** Style Star Rating Widget *****/
+#rating {
+    border: none;
+    float: left;
+}
+#rating > input {
+    display: none;
+} /*ẩn input radio - vì chúng ta đã có label là GUI*/
+#rating > label:before {
+    margin: 5px;
+    font-size: 1.25em;
+    display: inline-block;
+} /*1 ngôi sao*/
+#rating > label {
+    color: #ddd;
+    float: right;
+} /*float:right để lật ngược các ngôi sao lại đúng theo thứ tự trong thực tế*/
+/*thêm màu cho sao đã chọn và các ngôi sao phía trước*/
+#rating > input:checked ~ label,
+#rating:not(:checked) > label:hover,
+#rating:not(:checked) > label:hover ~ label {
+    color: #ffd700;
+}
+/* Hover vào các sao phía trước ngôi sao đã chọn*/
+#rating > input:checked + label:hover,
+#rating > input:checked ~ label:hover,
+#rating > label:hover ~ input:checked ~ label,
+#rating > input:checked ~ label:hover ~ label {
+    color: #ffed85;
 }

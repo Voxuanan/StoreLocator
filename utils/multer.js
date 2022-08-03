@@ -4,7 +4,7 @@ const path = require("path");
 const storage = multer.diskStorage({
     destination: "./public/uploads",
     filename: (req, file, callback) => {
-        callback(null, req.body.name + path.extname(file.originalname));
+        callback(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
     },
 });
 
@@ -28,4 +28,12 @@ const upload = multer({
     },
 }).single("imageUpload");
 
-module.exports = upload;
+const uploadMutiple = multer({
+    storage: storage,
+    limits: { fileSize: 10000000 },
+    fileFilter: (req, file, callback) => {
+        checkFileType(file, callback);
+    },
+}).array("imageUpload", 10);
+
+module.exports = { upload, uploadMutiple };

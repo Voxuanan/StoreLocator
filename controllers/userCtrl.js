@@ -10,9 +10,14 @@ const authCtrl = {
         try {
             const { username, password } = req.body;
             const user_name = await Users.findOne({ username: username });
-            if (user_name) return res.status(400).json({ msg: "This username already exist." });
+            if (user_name)
+                return res
+                    .status(400)
+                    .json({ success: false, msg: "This username already exist." });
             if (password.length < 6)
-                return res.status(400).json({ msg: "Password must be at least 6 characters." });
+                return res
+                    .status(400)
+                    .json({ success: false, msg: "Password must be at least 6 characters." });
             const passwordHash = await bcrypt.hash(password, 12);
             const newUser = new Users({
                 username,
@@ -28,13 +33,13 @@ const authCtrl = {
 
             await newUser.save();
             res.json({
-                msg: "Register Success!",
+                success: true,
                 access_token,
                 user: { ...newUser._doc, password: "" },
             });
             res.json({ success: true, access_token, data: { ...newUser._doc, password: "" } });
         } catch (error) {
-            res.status(500).json({ error: "Server error: " + error.message });
+            res.status(500).json({ success: false, msg: "Server error: " + error.message });
         }
     },
     //@desc Login
@@ -45,11 +50,13 @@ const authCtrl = {
             const { username, password } = req.body;
             const user = await Users.findOne({ username });
             if (!user) {
-                return res.status(400).json({ msg: "This username does not exist." });
+                return res
+                    .status(400)
+                    .json({ success: false, msg: "This username does not exist." });
             }
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                return res.status(400).json({ msg: "Password is incorrect." });
+                return res.status(400).json({ success: false, msg: "Password is incorrect." });
             }
 
             const access_token = createAccessToken({ id: user._id });
@@ -61,7 +68,7 @@ const authCtrl = {
             });
             res.json({ success: true, access_token, data: { ...user._doc, password: "" } });
         } catch (error) {
-            res.status(500).json({ error: "Server error: " + error.message });
+            res.status(500).json({ success: false, msg: "Server error: " + error.message });
         }
     },
     //@desc Logout
@@ -72,7 +79,7 @@ const authCtrl = {
             res.clearCookie("refreshtoken", { path: "/api/refresh_token" });
             res.json({ success: true });
         } catch (error) {
-            res.status(500).json({ error: "Server error: " + error.message });
+            res.status(500).json({ success: false, msg: "Server error: " + error.message });
         }
     },
     //@desc Generate Access Token
@@ -81,16 +88,20 @@ const authCtrl = {
     generateAccessToken: async (req, res) => {
         try {
             const refresh_token = req.cookies.refreshtoken;
-            if (!refresh_token) return res.status(400).json({ msg: "Please login." });
+            if (!refresh_token)
+                return res.status(400).json({ success: false, msg: "Please login." });
             jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET, async (err, result) => {
-                if (err) return res.status(400).json({ msg: "Please login." });
+                if (err) return res.status(400).json({ success: false, msg: "Please login." });
                 const user = await Users.findById(result.id).select("-password");
-                if (!user) return res.status(400).json({ msg: "This user does not exist." });
+                if (!user)
+                    return res
+                        .status(400)
+                        .json({ success: false, msg: "This user does not exist." });
                 const access_token = createAccessToken({ id: result.id });
                 res.json({ success: true, access_token, data: user });
             });
         } catch (error) {
-            res.status(500).json({ error: "Server error: " + error.message });
+            res.status(500).json({ success: false, msg: "Server error: " + error.message });
         }
     },
 };

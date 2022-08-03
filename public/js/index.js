@@ -1,6 +1,86 @@
 const info = document.querySelector("#info");
 const btnClose = document.querySelector("#btn-close");
 const infoContainer = document.querySelector("#info-container");
+const reviewsContainer = document.querySelector("#reviews-container");
+const stars = document.querySelectorAll(`input[type="radio"]`);
+let btnReviewSubmit = document.querySelector("#btn-modal_submit");
+const contentReview = document.querySelector(`input[name="content"]`);
+const imageUpload = document.querySelector(`input[type="file"]`);
+
+async function postData(url = "", data = {}) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        mode: "cors", // no-cors, *cors, same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: localStorage.getItem("token"),
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: "follow", // manual, *follow, error
+        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data), // body data type must match "Content-Type" header
+    });
+    return response.json(); // parses JSON response into native JavaScript objects
+}
+
+// Caculate rating
+function calcRate() {
+    let result = 0;
+    Array.from(stars).forEach((item) => {
+        if (item.checked) result = item.value;
+    });
+    return +result;
+}
+// Custom moment from nows
+function fromNow(date) {
+    var seconds = Math.floor((new Date() - date) / 1000);
+    var years = Math.floor(seconds / 31536000);
+    var months = Math.floor(seconds / 2592000);
+    var days = Math.floor(seconds / 86400);
+
+    if (days > 548) {
+        return years + " years ago";
+    }
+    if (days >= 320 && days <= 547) {
+        return "a year ago";
+    }
+    if (days >= 45 && days <= 319) {
+        return months + " months ago";
+    }
+    if (days >= 26 && days <= 45) {
+        return "a month ago";
+    }
+
+    var hours = Math.floor(seconds / 3600);
+
+    if (hours >= 36 && days <= 25) {
+        return days + " days ago";
+    }
+    if (hours >= 22 && hours <= 35) {
+        return "a day ago";
+    }
+
+    var minutes = Math.floor(seconds / 60);
+
+    if (minutes >= 90 && hours <= 21) {
+        return hours + " hours ago";
+    }
+    if (minutes >= 45 && minutes <= 89) {
+        return "an hour ago";
+    }
+    if (seconds >= 90 && minutes <= 44) {
+        return minutes + " minutes ago";
+    }
+    if (seconds >= 45 && seconds <= 89) {
+        return "a minute ago";
+    }
+    if (seconds >= 0 && seconds <= 45) {
+        return "a few seconds ago";
+    }
+}
 
 // side info
 btnClose.addEventListener("click", () => {
@@ -145,7 +225,7 @@ async function initMap() {
                                         rating[5] * 5) /
                                         item.reviews.length) *
                                         10
-                                ) / 10;
+                                ) / 10 || 0;
 
                             // Infowindow
                             // const contentInfoWindow = `
@@ -163,7 +243,7 @@ async function initMap() {
                             // const infowindow = new google.maps.InfoWindow({
                             //     content: contentInfoWindow,
                             // });
-                            const contentInfoContainer = `
+                            let contentInfoContainer = `
                                         <div id="bodyContent">
                                             <div style="padding: 10px">
                                                 <img src="./${
@@ -171,6 +251,13 @@ async function initMap() {
                                                 }" alt="image" style="width:100%;object-fit: cover; height:200px"
                                                 onerror="this.onerror=null;this.src='./uploads/default.jpg';"/>
                                             </div>
+                                            
+                                            <div style="margin-left: 10px"
+                                                <button type="button"class="btn btn-outline-primary"data-toggle="modal" data-target="#staticBackdrop">
+                                                    Send a review
+                                                </button>
+                                            </div>
+
                                             <h1 style="padding:5px 10px">${item.name}</h1>
                                             <div style="padding:10px">${
                                                 item.location.formattedAddress
@@ -276,14 +363,103 @@ async function initMap() {
                                             </div>
                                         </div>
                                 `;
+                            let contentReviewsContainer = item.reviews.reduce(
+                                (total, currentValue) => {
+                                    let images = "";
+                                    if (currentValue.images.length != 0) {
+                                        images = `<div class="card bg-dark text-white d-flex flex-row" style="overflow-x: auto;">`;
+                                        currentValue.images.forEach((image) => {
+                                            images += `<img class="card-img" src="${image}" alt="Card image" style="max-width: 100px;
+                                            max-height: 100px; padding: 10px;">`;
+                                        });
+                                        images += ` </div>`;
+                                    }
+                                    return (
+                                        total +
+                                        `<div class="d-flex align-item-center"> 
+                                            <img src="${
+                                                currentValue.userId.avatar
+                                            }" alt="avatar" class="avatar"/>
+                                            <div style="display: flex;
+                                            flex-direction: column;margin-left:5px">
+                                                <span className="d-block text-dark">${
+                                                    currentValue.userId.username
+                                                }</span>
+                                                <small className="text-muted">
+                                                    ${fromNow(
+                                                        new Date(currentValue.date).getTime()
+                                                    )}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div className="d-block" style="margin-left:5px">${
+                                            currentValue.content
+                                        }</div>
+                                        ${images}
+                                        <hr>
+                                        `
+                                    );
+                                },
+                                ""
+                            );
                             marker.addListener("click", () => {
                                 // infowindow.open({
                                 //     anchor: marker,
                                 //     map,
                                 //     shouldFocus: false,
                                 // });
+                                let newBtnSubmit = btnReviewSubmit.cloneNode(true);
+                                btnReviewSubmit.parentNode.replaceChild(
+                                    newBtnSubmit,
+                                    btnReviewSubmit
+                                );
+                                btnReviewSubmit = newBtnSubmit;
+                                btnReviewSubmit.addEventListener(
+                                    "click", // Send review
+                                    function sendReview() {
+                                        const data = {
+                                            star: calcRate(),
+                                            content: contentReview.value,
+                                        };
+
+                                        // postData(
+                                        //     `http://localhost:5000/api/v1/stores/review/${item._id}`,
+                                        //     data
+                                        // ).then((result) => {
+                                        //     console.log(result);
+                                        // });
+                                        const formData = new FormData();
+                                        for (const name in data) {
+                                            formData.append(name, data[name]);
+                                        }
+                                        const files = imageUpload.files;
+                                        if (files.length != 0) {
+                                            for (const single_file of files) {
+                                                formData.append("imageUpload", single_file);
+                                            }
+                                        }
+
+                                        fetch(
+                                            `http://localhost:5000/api/v1/stores/review/${item._id}`,
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    Authorization: localStorage.getItem("token"),
+                                                },
+                                                body: formData,
+                                            }
+                                        )
+                                            .then((res) => {
+                                                return res.json();
+                                            })
+                                            .then((data) => {
+                                                // console.log(data);
+                                            });
+                                    }
+                                );
                                 info.classList.add("active");
                                 infoContainer.innerHTML = contentInfoContainer;
+                                reviewsContainer.innerHTML = contentReviewsContainer;
                             });
                         }
                     });
